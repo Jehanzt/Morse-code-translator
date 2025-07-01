@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morse Code Translator by Jehanz</title>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init("YOUR_PUBLIC_KEY"); // 🔁 Replace with your EmailJS public key
+    })();
+  </script>
+  <style>
+    body { font-family:sans-serif;background:#111;color:#fff;display:flex;flex-direction:column;align-items:center;padding:2rem }
+    input, button { padding:.7rem;margin:.4rem;border:none;border-radius:5px;font-size:1rem }
+    input { width:250px } button { background:#00ffc3;color:#000;cursor:pointer } button:hover { background:#00e6b0 }
+    textarea { width:90%; height:100px; padding:1rem; font-size:1rem; margin:1rem 0; border-radius:5px }
+    #app, #adminPanel { display:none; margin-top:2rem }
+  </style>
+</head>
+<body>
+  <h1>Morse Code Translator by Jehanz</h1>
+
+  <div id="login-form">
+    <input type="text" id="username" placeholder="Username" /><br>
+    <input type="email" id="email" placeholder="Email (for register/reset)" /><br>
+    <input type="password" id="password" placeholder="Password" /><br>
+    <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+    <button onclick="requestReset()">Forgot Password</button>
+  </div>
+
+  <div id="app">
+    <h2 id="greet"></h2>
+    <select id="mode">
+      <option value="encode">Text ➜ Morse</option>
+      <option value="decode">Morse ➜ Text</option>
+    </select><br>
+    <textarea id="inputText" placeholder="Type here..."></textarea><br>
+    <button onclick="convert()">Convert</button>
+    <h3>Result:</h3>
+    <pre id="outputText"></pre>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div id="adminPanel">
+    <h3>👑 Admin Panel</h3>
+    <button onclick="addAdmin()">Add New Admin</button>
+    <pre id="adminList"></pre>
+  </div>
+
+  <script>
+    const DEFAULT_ADMIN = {
+      username: "Jehanzt",
+      password: "Jehanzt123",
+      email: "castro.nackiemil@gmail.com"
+    };
+
+    if (!localStorage.getItem(DEFAULT_ADMIN.username)) {
+      localStorage.setItem(DEFAULT_ADMIN.username, JSON.stringify({
+        password: DEFAULT_ADMIN.password,
+        email: DEFAULT_ADMIN.email,
+        isAdmin: true
+      }));
+    }
+
+    function saveUser(username, password, email, isAdmin = false) {
+      const data = JSON.stringify({ password, email, isAdmin });
+      localStorage.setItem(username, data);
+    }
+
+    function register() {
+      const user = username.value.trim();
+      const pass = password.value.trim();
+      const mail = email.value.trim();
+      if (!user || !pass || !mail) return alert("All fields required.");
+      if (localStorage.getItem(user)) return alert("User already exists.");
+      saveUser(user, pass, mail);
+      loginUser(user);
+    }
+
+    function login() {
+      const user = username.value.trim();
+      const pass = password.value.trim();
+      const record = localStorage.getItem(user);
+      if (!record) return alert("User not found.");
+      const data = JSON.parse(record);
+      if (data.password !== pass) return alert("Wrong password.");
+      loginUser(user);
+    }
+
+    function loginUser(user) {
+      localStorage.setItem("loggedIn", user);
+      greet.textContent = `Hi, ${user}!`;
+      loginForm.style.display = "none";
+      app.style.display = "block";
+
+      const data = JSON.parse(localStorage.getItem(user));
+      if (data.isAdmin) {
+        adminPanel.style.display = "block";
+        showAdmins();
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      location.reload();
+    }
+
+    function convert() {
+      const input = inputText.value.trim();
+      const mode = mode.value;
+      const morse = {
+        "a":".-","b":"-...","c":"-.-.","d":"-..","e":".","f":"..-.","g":"--.","h":"....",
+        "i":"..","j":".---","k":"-.-","l":".-..","m":"--","n":"-.","o":"---","p":".--.",
+        "q":"--.-","r":".-.","s":"...","t":"-","u":"..-","v":"...-","w":".--","x":"-..-",
+        "y":"-.--","z":"--..","0":"-----","1":".----","2":"..---","3":"...--","4":"....-",
+        "5":".....","6":"-....","7":"--...","8":"---..","9":"----."," ":"/"
+      };
+      const text = Object.fromEntries(Object.entries(morse).map(([k,v]) => [v,k]));
+      outputText.textContent = mode === "encode"
+        ? input.toLowerCase().split("").map(c => morse[c] || "").join(" ")
+        : input.split(" ").map(m => text[m] || "").join("");
+    }
+
+    function requestReset() {
+      const user = prompt("Enter your username:");
+      const mail = prompt("Enter your email:");
+      const record = localStorage.getItem(user);
+      if (!record) return alert("User not found.");
+      const data = JSON.parse(record);
+      if (data.email !== mail) return alert("Wrong email.");
+      const token = Math.random().toString(36).substring(2, 12);
+      localStorage.setItem(user + "_resetToken", token);
+      const link = `https://morse-code-translator.vercel.app/reset.html?user=${encodeURIComponent(user)}&token=${token}`;
+      emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+        to_email: mail,
+        username: user,
+        link: link
+      }).then(() => alert("✅ Reset link sent!"))
+        .catch(err => alert("❌ Email failed: " + err.text));
+    }
+
+    function addAdmin() {
+      const user = prompt("Enter username to make admin:");
+      const record = localStorage.getItem(user);
+      if (!record) return alert("User not found.");
+      const data = JSON.parse(record);
+      data.isAdmin = true;
+      localStorage.setItem(user, JSON.stringify(data));
+      alert(user + " is now an admin!");
+      showAdmins();
+    }
+
+    function showAdmins() {
+      let output = "Current admins:\n";
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key.includes("_resetToken")) {
+          const data = JSON.parse(localStorage.getItem(key));
+          if (data && data.isAdmin) output += "• " + key + "\n";
+        }
+      }
+      adminList.textContent = output;
+    }
+
+    window.onload = () => {
+      const user = localStorage.getItem("loggedIn");
+      if (user) loginUser(user);
+    };
+  </script>
+</body>
+  </html>
