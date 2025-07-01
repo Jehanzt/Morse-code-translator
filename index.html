@@ -7,7 +7,7 @@
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init("YOUR_PUBLIC_KEY"); // 🔁 Replace with your EmailJS public key
+      emailjs.init("service_yil2nil"); // 🔁 Replace with your EmailJS public key
     })();
   </script>
   <style>
@@ -133,7 +133,7 @@
       const token = Math.random().toString(36).substring(2, 12);
       localStorage.setItem(user + "_resetToken", token);
       const link = `https://morse-code-translator.vercel.app/reset.html?user=${encodeURIComponent(user)}&token=${token}`;
-      emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+      emailjs.send("service_yil2nil", "template_d8u5dw4", {
         to_email: mail,
         username: user,
         link: link
