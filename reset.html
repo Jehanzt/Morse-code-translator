@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reset Password - Morse Code Translator</title>
+  <style>
+    body {
+      background:#0d1117;
+      color:#fff;
+      font-family:sans-serif;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      padding:2rem;
+    }
+    h1 { color:#00ffc3 }
+    input,button {
+      padding:.7rem;
+      margin:.5rem;
+      border:none;
+      border-radius:5px;
+      font-size:1rem;
+    }
+    input {
+      width:260px;
+      background:#1c1f24;
+      color:#fff;
+    }
+    button {
+      background:#00ffc3;
+      color:#000;
+      cursor:pointer;
+    }
+    button:hover {
+      background:#00e6b0;
+    }
+    #status {
+      margin-top:1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reset Your Password</h1>
+  <div id="formArea">
+    <input type="password" id="newPass" placeholder="Enter New Password" /><br>
+    <button onclick="resetPassword()">Set New Password</button>
+  </div>
+  <p id="status"></p>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const user = params.get("user");
+    const token = params.get("token");
+
+    function resetPassword() {
+      const newPass = document.getElementById("newPass").value.trim();
+      if (!user || !token || !newPass) return alert("Missing info.");
+      const stored = localStorage.getItem(user + "_resetToken");
+      if (stored !== token) return alert("Invalid or expired token.");
+      const userData = JSON.parse(localStorage.getItem(user));
+      localStorage.setItem(user, JSON.stringify({
+        password: newPass,
+        email: userData.email,
+        isAdmin: userData.isAdmin || false
+      }));
+      localStorage.removeItem(user + "_resetToken");
+      document.getElementById("status").textContent = "✅ Password changed! You may now login.";
+      document.getElementById("formArea").style.display = "none";
+    }
+  </script>
+</body>
+</html>
